@@ -3,12 +3,15 @@ import * as fecha from 'fecha';
 
 let idCounter = 0;
 class HotelDatepicker {
-  constructor(input, options) {
+  constructor(options) {
     this._boundedEventHandlers = {};
     this.id = HotelDatepicker.getNewId();
 
     // Set default values
     const opts = options || {};
+    // DOM input
+    this.input = opts.input || null;
+    this.inputEnd = opts.inputEnd || null;
     this.format = opts.format || "YYYY-MM-DD";
     this.infoFormat = opts.infoFormat || this.format;
     this.ariaDayFormat = opts.ariaDayFormat || "dddd, MMMM DD, YYYY";
@@ -75,21 +78,31 @@ class HotelDatepicker {
       "aria-submit-button": "Submit the form"
     };
     this.getValue = opts.getValue || function () {
-      return input.value;
+      return this.input.value;
     };
     this.setValue = opts.setValue || function (s) {
-      input.value = s;
+      this.input.value = s;
+    };
+    this.setEndValue = opts.setEndValue || function (s) {
+      if (this.inputEnd) {
+        this.inputEnd.value = s;
+      }
+    };
+    this.getEndValue = opts.getEndValue || function () {
+      return this.inputEnd ? this.inputEnd.value : null;
     };
     this.onDayClick = opts.onDayClick === undefined ? false : opts.onDayClick;
     this.onOpenDatepicker = opts.onOpenDatepicker === undefined ? false : opts.onOpenDatepicker;
     this.onSelectRange = opts.onSelectRange === undefined ? false : opts.onSelectRange;
     this.extraDayText = opts.extraDayText === undefined ? false : opts.extraDayText;
-
-    // DOM input
-    this.input = input;
+    this.inputs = [this.input, this.inputEnd];
 
     // Initialize the datepicker
-    this.init();
+    if (this.input) {
+      this.init();
+    } else {
+      console.error('Missing "input" option to attach HotelDatepicker');
+    }
   }
   addBoundedListener(node, event, handler, capture) {
     if (!(node in this._boundedEventHandlers)) {
@@ -315,7 +328,11 @@ class HotelDatepicker {
     }
 
     // Open the datepicker on the input click
-    this.addBoundedListener(this.input, "click", evt => this.openDatepicker(evt));
+    this.inputs.forEach(input => {
+      if (input) {
+        this.addBoundedListener(input, "click", evt => this.openDatepicker(evt));
+      }
+    });
     if (this.showTopbar && !this.inline) {
       // Close the datepicker on the button click
       document.getElementById(this.getCloseButtonId()).addEventListener("click", evt => this.closeDatepicker(evt));
@@ -343,12 +360,19 @@ class HotelDatepicker {
     this.datepicker.addEventListener("mouseout", evt => this.datepickerMouseOut(evt));
 
     // Update the selected values when the input changes manually
-    this.addBoundedListener(this.input, "change", () => this.checkAndSetDefaultValue());
-
+    this.inputs.forEach(input => {
+      if (input) {
+        this.addBoundedListener(input, "change", () => this.checkAndSetDefaultValue());
+      }
+    });
     // Open datepicker on focus
     if (!this.inline) {
       if (!this.justEsc) {
-        this.addBoundedListener(this.input, "focus", evt => this.openDatepicker(evt));
+        this.inputs.forEach(input => {
+          if (input) {
+            this.addBoundedListener(input, "focus", evt => this.openDatepicker(evt));
+          }
+        });
       }
       this.justEsc = false;
     }
@@ -650,7 +674,11 @@ class HotelDatepicker {
     // Create event on close
     const evt = document.createEvent("Event");
     evt.initEvent("afterClose", true, true);
-    this.input.dispatchEvent(evt);
+    this.inputs.forEach(input => {
+      if (input) {
+        input.dispatchEvent(evt);
+      }
+    });
     this.removeAllBoundedListeners(document, "click");
   }
   autoclose() {
@@ -661,7 +689,7 @@ class HotelDatepicker {
   }
   documentClick(evt) {
     // Check if the click was outside the datepicker and close it
-    if (!this.parent.contains(evt.target) && evt.target !== this.input) {
+    if (!this.parent.contains(evt.target) && evt.target !== this.input && evt.target !== this.inputEnd) {
       if (!this.preventContainerClose) {
         this.closeDatepicker();
       }
@@ -815,7 +843,8 @@ class HotelDatepicker {
 
     // Get dates from input value
     const value = this.getValue();
-    const dates = value ? value.split(this.separator) : "";
+    const valueEnd = this.getEndValue();
+    const dates = value && !this.inputEnd ? value.split(this.separator) : value && valueEnd ? [value, valueEnd] : "";
 
     // If we have our two dates, set the date range
     if (dates && dates.length >= 2) {
@@ -958,14 +987,23 @@ class HotelDatepicker {
     }
   }
   showSelectedInfo() {
+    // Reset input
+    this.setValue("");
+    this.setEndValue("");
     // Return early if the top bar is disabled
     if (!this.showTopbar) {
       // If both dates are set, set the value of our input
       if (this.start && this.end) {
-        const dateRangeValue = this.getDateString(new Date(this.start)) + this.separator + this.getDateString(new Date(this.end));
+        if (!this.inputEnd) {
+          const dateRangeValue = this.getDateString(new Date(this.start)) + this.separator + this.getDateString(new Date(this.end));
 
-        // Set input value
-        this.setValue(dateRangeValue, this.getDateString(new Date(this.start)), this.getDateString(new Date(this.end)));
+          // Set input value
+          this.setValue(dateRangeValue, this.getDateString(new Date(this.start)), this.getDateString(new Date(this.end)));
+        } else {
+          // Set input values
+          this.setValue(this.getDateString(new Date(this.start)));
+          this.setEndValue(this.getDateString(new Date(this.end)));
+        }
         this.changed = true;
       }
       return;
@@ -1018,7 +1056,13 @@ class HotelDatepicker {
       }
 
       // Set input value
-      this.setValue(dateRangeValue, this.getDateString(new Date(this.start)), this.getDateString(new Date(this.end)));
+      if (!this.inputEnd) {
+        this.setValue(dateRangeValue, this.getDateString(new Date(this.start)), this.getDateString(new Date(this.end)));
+      } else {
+        // Set input values
+        this.setValue(this.getDateString(new Date(this.start)));
+        this.setEndValue(this.getDateString(new Date(this.end)));
+      }
       this.changed = true;
     } else if (!this.inline) {
       // Disable the close button until a valid date range
@@ -1564,6 +1608,7 @@ class HotelDatepicker {
 
     // Reset input
     this.setValue("");
+    this.setEndValue("");
 
     // Check the selection
     this.checkSelection();
@@ -1590,6 +1635,7 @@ class HotelDatepicker {
 
     // Reset input
     this.setValue("");
+    this.setEndValue("");
 
     // Check the selection
     this.checkSelection();
@@ -1810,7 +1856,7 @@ class HotelDatepicker {
     return string.replace("%s", value);
   }
   checkOnFocus(event) {
-    if (event.target && this.input === event.target || this.datepicker.contains(event.target)) {
+    if (event.target && this.input === event.target && this.inputEnd === event.target || this.datepicker.contains(event.target)) {
       this.isOnFocus = true;
     } else {
       this.isOnFocus = false;
@@ -2058,7 +2104,8 @@ class HotelDatepicker {
       count = this.countDays(this.end, this.start) - 1;
     } else {
       const value = this.getValue();
-      const dates = value ? value.split(this.separator) : "";
+      const valueEnd = this.getEndValue();
+      const dates = value && !this.inputEnd ? value.split(this.separator) : value && valueEnd ? [value, valueEnd] : "";
       if (dates && dates.length >= 2) {
         const _format = this.format;
         count = this.countDays(this.parseDate(dates[0], _format), this.parseDate(dates[1], _format)) - 1;
@@ -2068,9 +2115,13 @@ class HotelDatepicker {
   }
   destroy() {
     if (document.getElementById(this.getDatepickerId())) {
-      this.removeAllBoundedListeners(this.input, "click");
+      this.inputs.forEach(input => {
+        if (input) {
+          this.removeAllBoundedListeners(input, "click");
+          this.removeAllBoundedListeners(input, "change");
+        }
+      });
       this.removeAllBoundedListeners(document, "click");
-      this.removeAllBoundedListeners(this.input, "change");
       this.datepicker.parentNode.removeChild(this.datepicker);
     }
   }
