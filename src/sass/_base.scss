@@ -110,3 +110,11 @@ datepicker__buttons {
 .datepicker__tooltip {
     position: absolute;
 }
+
+.datepicker__shortcut-info {
+  display: none;
+
+  &.open {
+    display: block;
+  }
+}

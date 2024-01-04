@@ -67,6 +67,14 @@ datepicker__buttons {
   position: absolute;
 }
 
+.datepicker__shortcut-info {
+  display: none;
+}
+
+.datepicker__shortcut-info.open {
+  display: block;
+}
+
 /* =============================================================
  * THEME
  * ============================================================*/
@@ -353,6 +361,54 @@ datepicker__buttons {
   left: 50%;
   margin-left: -4px;
   position: absolute;
+}
+
+.datepicker__shortcut-info {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  overflow: auto;
+  background-color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 8px 8px 40px 5px rgba(0, 0, 0, 0.08);
+}
+
+.datepicker__shortcut-info h2 {
+  font-size: 18px;
+  margin: 0 0 10px;
+}
+
+.datepicker__shortcut-info .datepicker__close-button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.datepicker__shortcut-info ul {
+  padding: 10px 0;
+}
+
+.datepicker__shortcut-info li {
+  margin-bottom: 10px;
+}
+
+.datepicker__shortcut-info li span {
+  padding: 2px;
+  background-color: #eee;
+}
+
+.datepicker__help-button {
+  border-radius: 2px;
+  border: none;
+  box-shadow: none;
+  position: absolute;
+  padding: 7px 13px;
+  bottom: 2px;
+  right: 2px;
+  cursor: help;
 }
 
 @media (min-width: 320px) {

@@ -1,4 +1,4 @@
-/*! hotel-datepicker 4.6.2 - Copyright 2022 Benito Lopez (http://lopezb.com) - https://github.com/benitolopez/hotel-datepicker - MIT */
+/*! hotel-datepicker 4.6.2 - Copyright 2022 Benito Lopez (http://lopezb.com) - https://github.com/kirstbew/hotel-datepicker - MIT */
 var HotelDatepicker = (function (fecha) {
   'use strict';
 
@@ -95,7 +95,15 @@ var HotelDatepicker = (function (fecha) {
         "aria-next-month": "Move forward to switch to the next month",
         "aria-close-button": "Close the datepicker",
         "aria-clear-button": "Clear the selected dates",
-        "aria-submit-button": "Submit the form"
+        "aria-submit-button": "Submit the form",
+        "shortcut-help": "Shortcut help",
+        "shortcut-heading": "Keyboard shortcuts",
+        "shortcut-1": "Move backward (left) and forward (right) by one day.",
+        "shortcut-2": "Move backward (up) and forward (down) by one week.",
+        "shortcut-3": "Page up/Page down to switch months.",
+        "shortcut-4": "Go to the first or last day of a week.",
+        "shortcut-5": "Return to select the date in focus or trigger click on button in focus.",
+        "shortcut-6": "Escape to return to the date input field."
       };
       this.getValue = opts.getValue || function () {
         return this.input.value;
@@ -205,6 +213,14 @@ var HotelDatepicker = (function (fecha) {
     getSubmitButtonId() {
       // Get close button ID
       return "submit-" + this.generateId();
+    }
+    getShortcutButtonId() {
+      // Get close button ID
+      return "shortcut-" + this.generateId();
+    }
+    getShortcutId() {
+      // Get close button ID
+      return "shortcut-info-" + this.generateId();
     }
     getTooltipId() {
       // Get close button ID
@@ -362,6 +378,11 @@ var HotelDatepicker = (function (fecha) {
         document.getElementById(this.getClearButtonId()).addEventListener("click", evt => this.clearDatepicker(evt));
       }
 
+      // Open shortcut info.
+      document.getElementById(this.getShortcutButtonId()).addEventListener("click", evt => this.openShortcutInfo(evt));
+      // Close shortcut info.
+      document.getElementById(this.getShortcutButtonId() + '-close').addEventListener('click', evt => this.closeShortcutInfo(evt));
+
       // Close the datepicker on resize?
       // The problem is that mobile keyboards trigger the resize event closing
       // the datepicker. There are some workarounds (http://stackoverflow.com/q/14902321)
@@ -443,6 +464,7 @@ var HotelDatepicker = (function (fecha) {
       }
       const wrapperStyle = this.inline ? "" : ' style="display:none"';
       let html = '<div id="' + this.getDatepickerId() + '"' + wrapperStyle + ' class="datepicker datepicker--closed' + wrapperClass + '">';
+      html += '<button type="button" id="' + this.getShortcutButtonId() + '" class="datepicker__help-button" aria-label="' + this.lang("shortcut-help") + '">&quest;</button>';
       html += '<div class="datepicker__inner">';
       let topBarHtml = "";
       if (this.showTopbar) {
@@ -487,8 +509,34 @@ var HotelDatepicker = (function (fecha) {
       // Tooltip
       html += '<div style="display:none" id="' + this.getTooltipId() + '" class="datepicker__tooltip"></div>';
       html += "</div>";
+      html += this.createShortcutInfo();
       html += "</div>";
       return html;
+    }
+    createShortcutInfo() {
+      const closeBtn = '<button type="button" id="' + this.getShortcutButtonId() + '-close" class="datepicker__close-button" aria-label="' + this.i18n["aria-close-button"] + '">' + this.lang("button") + "</button>";
+      const html = `<div id="${this.getShortcutId()}" class="datepicker__shortcut-info">
+      <h2>${this.lang("shortcut-heading")}</h2>${closeBtn}
+      <ul>
+        <li><span aria-label="left/right arrow">←/→</span>: ${this.lang("shortcut-1")}</li>
+        <li><span aria-label="up/down arrow">↑/↓</span>: ${this.lang("shortcut-2")}</li>
+        <li><span aria-label=page up/page down">PGUP/PGDN</span>: ${this.lang("shortcut-3")}</li>
+        <li><span aria-label="home/end">HOME/END</span>: ${this.lang("shortcut-4")}</li>
+        <li><span aria-label="return">↵</span>: ${this.lang("shortcut-5")}</li>
+        <li><span aria-label="escape">ESC</span>: ${this.lang("shortcut-6")}</li>
+      </ul>
+    </div>`;
+      return html;
+    }
+    openShortcutInfo() {
+      const info = document.getElementById(this.getShortcutId());
+      info.classList.add('open');
+      info.tabIndex = '1';
+      info.focus();
+    }
+    closeShortcutInfo() {
+      document.getElementById(this.getShortcutId()).classList.remove('open');
+      document.getElementById(this.getShortcutButtonId()).focus();
     }
     showMonth(date, month) {
       date.setHours(0, 0, 0, 0);
@@ -686,6 +734,9 @@ var HotelDatepicker = (function (fecha) {
       // Add/remove helper classes
       this.removeClass(this.datepicker, "datepicker--open");
       this.addClass(this.datepicker, "datepicker--closed");
+
+      // Hide shortcuts.
+      this.closeShortcutInfo();
 
       // Slide up the datepicker
       this.slideUp(this.datepicker, this.animationSpeed);
