@@ -46,7 +46,7 @@ export default class HotelDatepicker {
     this.clearButton = opts.clearButton || false;
     this.submitButton = Boolean(this.inline && opts.submitButton);
     this.submitButtonName = this.submitButton && opts.submitButtonName ? opts.submitButtonName : "";
-    this.i18n = opts.i18n || {
+    this.i18n = {
       selected: "Your stay:",
       night: "Night",
       nights: "Nights",
@@ -87,7 +87,8 @@ export default class HotelDatepicker {
       "shortcut-3": "Page up/Page down to switch months.",
       "shortcut-4": "Go to the first or last day of a week.",
       "shortcut-5": "Return to select the date in focus or trigger click on button in focus.",
-      "shortcut-6": "Escape to return to the date input field."
+      "shortcut-6": "Escape to return to the date input field.",
+      ...opts.i18n
     };
     this.getValue = opts.getValue || function () {
       return this.input.value;
