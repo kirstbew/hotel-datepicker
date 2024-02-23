@@ -24,6 +24,22 @@
     &--inline {
         position: relative;
     }
+
+    &--single-month {
+      width: auto;
+
+      @include mq_s {
+        width: 280px;
+      }
+
+      @include mq_m {
+        width: 280px;
+      }
+
+      @include mq_l {
+        width: 280px;
+      }
+    }
 }
 
 .datepicker__inner {
@@ -48,6 +64,10 @@
     @include mq_l {
         width: 240px;
     }
+
+    .datepicker--single-month & {
+      width: 100%;
+    }
 }
 
 .datepicker__month--month1 {
@@ -62,6 +82,10 @@
     @include mq_m {
         display: table;
         float: right;
+
+        .datepicker--single-month & {
+          display: none;
+        }
     }
 }
 
@@ -98,7 +122,7 @@
     display: block;
 }
 
-datepicker__buttons {
+.datepicker__buttons {
     user-select: none;
 }
 

@@ -719,7 +719,25 @@ var datepicker = new HotelDatepicker({
         </div>
       </div>
 
-      <!-- TODO: Add shortcut textbox -->
+      <div class="demo__item">
+        <div class="demo__input" id="demo30-input-parent">
+          <input id="demo31" type="text" value=""
+            aria-label="Check-in and check-out dates"
+            aria-describedby="demo31-input-description" />
+        </div>
+        <p class="demo__description" id="demo31-input-description">
+          Showing single date selection with single month view.
+        </p>
+        <div class="demo__config">
+          <pre id="pre-demo31">
+var datepicker = new HotelDatepicker({
+  input: document.getElementById('input-id'),
+  singleMode: true,
+  singleMonth: true,
+});
+				</pre>
+        </div>
+      </div>
 
 
     </div>
@@ -1353,6 +1371,18 @@ var datepicker = new HotelDatepicker({
           input: document.getElementById("demo30"),
           inputEnd: document.getElementById("demo30-end"),
           format: "DD-MM-YYYY",
+        }
+      );
+
+      // ------------------- DEMO 31 ------------------- //
+
+      var demo31 = new HotelDatepicker(
+        {
+          input: document.getElementById("demo31"),
+          singleMode: true,
+          format: "DD-MM-YYYY",
+          singleMonth: true,
+          showTopbar: false
         }
       );
     })();

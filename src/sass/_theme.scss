@@ -24,7 +24,7 @@
   @include mq_m {
     position: relative;
 
-    &:before {
+    &::before {
       background: $line__border__color;
       bottom: 0;
       content: "";
@@ -33,6 +33,10 @@
       position: absolute;
       top: 0;
       width: 1px;
+
+      .datepicker--single-month & {
+        display: none;
+      }
     }
   }
 }
@@ -323,7 +327,7 @@
   box-sizing: border-box;
   width: 80%;
   height: 80%;
-  padding: 20px;
+  padding: 40px 20px 20px;
   background-color: #fff;
   box-shadow: 8px 8px 40px 5px rgba(0, 0, 0, 0.08);
 

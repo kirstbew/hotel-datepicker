@@ -14,12 +14,14 @@ class HotelDatepicker {
     this.inputEnd = opts.inputEnd || null;
     this.format = opts.format || "YYYY-MM-DD";
     this.infoFormat = opts.infoFormat || this.format;
+    this.singleMode = opts.singleMode || false;
+    this.singleMonth = opts.singleMonth || false;
     this.ariaDayFormat = opts.ariaDayFormat || "dddd, MMMM DD, YYYY";
     this.separator = opts.separator || " - ";
     this.startOfWeek = opts.startOfWeek || "sunday"; // Or monday
     this.startDate = opts.startDate || new Date();
     this.endDate = opts.endDate || false;
-    this.minNights = opts.minNights || 1;
+    this.minNights = opts.minNights || this.singleMode ? 0 : 1;
     this.maxNights = opts.maxNights || 0;
     this.selectForward = opts.selectForward || false;
     this.disabledDates = opts.disabledDates || [];
@@ -443,6 +445,9 @@ class HotelDatepicker {
     if (this.submitButton) {
       wrapperClass += " datepicker--topbar-has-submit-button";
     }
+    if (this.singleMonth) {
+      wrapperClass += " datepicker--single-month";
+    }
     const wrapperStyle = this.inline ? "" : ' style="display:none"';
     let html = '<div id="' + this.getDatepickerId() + '"' + wrapperStyle + ' class="datepicker datepicker--closed' + wrapperClass + '">';
     html += '<button type="button" id="' + this.getShortcutButtonId() + '" class="datepicker__help-button" aria-label="' + this.lang("shortcut-help") + '">&quest;</button>';
@@ -512,8 +517,7 @@ class HotelDatepicker {
   openShortcutInfo() {
     const info = document.getElementById(this.getShortcutId());
     info.classList.add('open');
-    info.tabIndex = '1';
-    info.focus();
+    document.getElementById(`${this.getShortcutButtonId()}-close`).focus();
   }
   closeShortcutInfo() {
     document.getElementById(this.getShortcutId()).classList.remove('open');
@@ -735,7 +739,7 @@ class HotelDatepicker {
   }
   autoclose() {
     // Autoclose the datepicker when the second date is set
-    if (this.autoClose && this.changed && this.isOpen && this.start && this.end && !this.inline) {
+    if (this.autoClose && this.changed && this.isOpen && !this.inline && (!this.singleMode && this.start && this.end || this.singleMode && this.start)) {
       this.closeDatepicker();
     }
   }
@@ -765,8 +769,10 @@ class HotelDatepicker {
     }
   }
   onResizeDatepicker() {
-    // Reset month views
-    this.checkAndSetDefaultValue(true);
+    if (this.isVisible(this.getDatePicker())) {
+      // Reset month views
+      this.checkAndSetDefaultValue(true);
+    }
   }
   getDayClasses(_day) {
     const isToday = this.getDateString(_day.time) === this.getDateString(new Date());
@@ -1137,8 +1143,28 @@ class HotelDatepicker {
     if (this.hasClass(day, "datepicker__month-day--invalid")) {
       return;
     }
-    const isSelectStart = this.start && this.end || !this.start && !this.end;
+    const isSelectStart = !this.singleMode && this.start && this.end || !this.singleMode && !this.start && !this.end;
     const time = parseInt(day.getAttribute("time"), 10);
+    if (this.singleMode) {
+      this.clearSelection();
+      this.start = time;
+      this.end = time;
+      // Enable close button.
+      const closeButton = document.getElementById(this.getCloseButtonId());
+      if (closeButton) {
+        closeButton.disabled = false;
+        closeButton.setAttribute("aria-disabled", "false");
+      } else {
+        this.changed = true;
+      }
+      // Set start value.
+      this.setValue(this.getDateString(new Date(time)));
+      this.addClass(day, "datepicker__month-day--selected");
+      this.addClass(day, "datepicker__month-day--first-day-selected");
+      // Close the datepicker
+      this.autoclose();
+      return;
+    }
 
     // Return early for those days where the checkin or checkout is disabled
     if (isSelectStart) {
@@ -1428,7 +1454,7 @@ class HotelDatepicker {
   }
   isSingleMonth() {
     // Check if the second month is visible
-    return !this.isVisible(this.getMonthDom(2));
+    return this.singleMonth ? true : !this.isVisible(this.getMonthDom(2));
   }
   isMonthOutOfRange(month) {
     const _m = new Date(month.valueOf());
@@ -1479,7 +1505,7 @@ class HotelDatepicker {
   }
   topBarDefaultText() {
     // Return early if the top bar is disabled
-    if (!this.showTopbar) {
+    if (!this.showTopbar || this.singleMode) {
       return;
     }
 
@@ -1498,8 +1524,8 @@ class HotelDatepicker {
     } else {
       topBarText = this.lang("info-default");
     }
-    const bar = this.datepicker.getElementsByClassName("datepicker__info--feedback")[0];
     topBarText = topBarText.replace(/%d/, this.minDays - 1).replace(/%d/, this.maxDays - 1);
+    const bar = this.datepicker.getElementsByClassName("datepicker__info--feedback")[0];
     this.addClass(bar, "datepicker__info--help");
     this.removeClass(bar, "datepicker__info--error");
     bar.textContent = topBarText;
