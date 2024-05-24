@@ -506,7 +506,7 @@ class HotelDatepicker {
       <ul>
         <li><span aria-label="left/right arrow">←/→</span>: ${this.lang("shortcut-1")}</li>
         <li><span aria-label="up/down arrow">↑/↓</span>: ${this.lang("shortcut-2")}</li>
-        <li><span aria-label=page up/page down">PGUP/PGDN</span>: ${this.lang("shortcut-3")}</li>
+        <li><span aria-label="page up/page down">PGUP/PGDN</span>: ${this.lang("shortcut-3")}</li>
         <li><span aria-label="home/end">HOME/END</span>: ${this.lang("shortcut-4")}</li>
         <li><span aria-label="return">↵</span>: ${this.lang("shortcut-5")}</li>
         <li><span aria-label="escape">ESC</span>: ${this.lang("shortcut-6")}</li>
@@ -529,17 +529,18 @@ class HotelDatepicker {
     // Show month table and create the necessary HTML code
     const name = this.getMonthName(date.getMonth());
     const monthDom = this.getMonthDom(month);
-    const monthName = monthDom.getElementsByClassName("datepicker__month-name")[0];
-    const monthBody = monthDom.getElementsByTagName("tbody")[0];
+    const monthName = monthDom.getElementsByClassName("datepicker__month-name");
+    const monthBody = monthDom.getElementsByTagName("tbody");
+    if (!monthName || !monthBody) return;
 
     // Month caption
-    monthName.textContent = name + " " + date.getFullYear();
+    monthName[0].textContent = name + " " + date.getFullYear();
 
     // Remove child elements before to insert the new month
-    this.emptyElement(monthBody);
+    this.emptyElement(monthBody[0]);
 
     // Append the month
-    monthBody.insertAdjacentHTML("beforeend", this.createMonthDomString(date));
+    monthBody[0].insertAdjacentHTML("beforeend", this.createMonthDomString(date));
 
     // Check day dates
     this.updateSelectableRange();
@@ -676,6 +677,8 @@ class HotelDatepicker {
     return html;
   }
   openDatepicker() {
+    if (!document.getElementById(this.getDatepickerId())) return;
+
     // Open the datepicker
     if (!this.isOpen) {
       // Add/remove helper classes
@@ -1868,6 +1871,7 @@ class HotelDatepicker {
     el.className = el.className.replace(this.classRegex(c), " ");
   }
   isVisible(element) {
+    if (!element) return false;
     // Check if a DOM element is visible
     return element.offsetWidth || element.offsetHeight || element.getClientRects().length;
   }
@@ -2197,6 +2201,7 @@ class HotelDatepicker {
         if (input) {
           this.removeAllBoundedListeners(input, "click");
           this.removeAllBoundedListeners(input, "change");
+          this.removeAllBoundedListeners(input, "focus");
         }
       });
       this.removeAllBoundedListeners(document, "click");
